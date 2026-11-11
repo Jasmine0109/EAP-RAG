@@ -1,0 +1,69 @@
+# 语料清单
+#
+# 规则：
+#   1. 只收许可明确的材料，`license` 必填；
+#   2. 下载后的原文放 corpus/raw/（gitignore），处理后放 corpus/processed/；
+#   3. 每次入库写 sha256，语料改版要能追溯到版本；
+#   4. `verified: false` 表示链接/许可尚未人工核对，导入前必须确认。
+
+version: 1
+updated: 2026-11-10
+
+sources:
+  - key: who-mh-work
+    title: WHO Guidelines on Mental Health at Work
+    url: https://www.who.int/publications/i/item/9789240053052
+    lang: en
+    license: CC BY-NC-SA 3.0 IGO
+    usage: 非商业可用，需署名并相同方式共享
+    verified: false
+    priority: 1
+    covers: [职场心理风险, 组织干预, 管理者角色, 返岗]
+
+  - key: niosh-stress
+    title: "STRESS…At Work (NIOSH Publication 99-101)"
+    url: https://www.cdc.gov/niosh/docs/99-101/
+    lang: en
+    license: Public Domain (US Government)
+    usage: 自由使用，建议署名
+    verified: false
+    priority: 1
+    covers: [工作压力源, 压力反应, 干预层级]
+
+  - key: who-pfa
+    title: Psychological First Aid — Guide for Field Workers
+    url: https://www.who.int/publications/i/item/9789241548205
+    lang: en
+    license: CC BY-NC-SA 3.0 IGO
+    usage: 仅用于危机响应参考，不替代专业干预
+    verified: false
+    priority: 1
+    covers: [危机识别, 稳定化, 转介, 边界]
+
+  - key: nvc-summary
+    title: 非暴力沟通四要素（自撰摘要，不复制原书）
+    url: internal
+    lang: zh
+    license: Self-authored
+    usage: 只写框架：观察/感受/需要/请求 + 例句，禁止摘录 Rosenberg 原文
+    verified: true
+    priority: 2
+    covers: [困难对话, 表达结构, 防御性降低]
+
+  - key: psysafety-summary
+    title: 心理安全感对话框架（自撰摘要）
+    url: internal
+    lang: zh
+    license: Self-authored
+    usage: 基于 Edmondson 的公开框架自行归纳，标注出处不摘录
+    verified: true
+    priority: 2
+    covers: [团队氛围, 提问方式, 容错]
+
+# 明确的排除项（不要收录）
+excluded:
+  - 企业真实 EAP 手册 / 内部制度（隐私与授权）
+  - MMPI、WAIS、MBTI 等商业量表的条目与常模（版权）
+  - 任何未脱敏的咨询记录、员工个案
+  - 出版社教材全文
+  - 新闻/自媒体心理科普（无同行评审）
