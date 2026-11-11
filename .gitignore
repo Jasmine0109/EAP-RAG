@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+build/
+dist/
+
+# 工具缓存
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# 本地环境与索引（可重建，不入库）
+.env
+data/index/
+data/processed/
+data/raw/*
+!data/raw/.gitkeep
+!data/raw/welcome.md
+
+# macOS
+.DS_Store
