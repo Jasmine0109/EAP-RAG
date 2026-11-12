@@ -44,7 +44,7 @@ class Config:
     top_k: int = 5
     embed_dim: int = 256
     llm_base_url: str = "http://127.0.0.1:8000/v1"
-    llm_model: str = "qwen3.8-27b-local"
+    llm_model: str = "Qwen3.8-27B-4bit"
     llm_api_key: str = "sk-local"
     llm_timeout: int = 120
     offline: bool = False
@@ -71,7 +71,7 @@ def load() -> Config:
         top_k=_int("RAG_TOP_K", 5),
         embed_dim=_int("RAG_EMBED_DIM", 256),
         llm_base_url=_str("RAG_LLM_BASE_URL", "http://127.0.0.1:8000/v1").rstrip("/"),
-        llm_model=_str("RAG_LLM_MODEL", "qwen3.8-27b-local"),
+        llm_model=_str("RAG_LLM_MODEL", "Qwen3.8-27B-4bit"),
         llm_api_key=_str("RAG_LLM_API_KEY", "sk-local"),
         llm_timeout=_int("RAG_LLM_TIMEOUT", 120),
         offline=_bool("RAG_OFFLINE", False),

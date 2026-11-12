@@ -1,10 +1,9 @@
 """向量化。
 
-默认实现是「特征哈希」嵌入：无模型、无网络、确定性，用来先把整条链路跑通。
-它的语义检索能力很弱（本质是词面重合），**换真模型是第一步升级**。
-
-替换方法：实现同样的 `dim` + `embed()` 接口，在 `build_embedder()` 里返回即可。
-注意换维度后旧索引要重建（`rag reset`）。
+生产用 bge-small-zh-v1.5（中文检索，512 维，CPU 可跑）；
+哈希嵌入只作无网络/无模型时的兜底，接口一致（dim + embed）。
+换模型：实现同样的接口，在 build_embedder() 里返回即可。
+注意：换维度后旧索引要重建（索引文件可删，语料在 corpus/processed 可重跑）。
 """
 
 from __future__ import annotations
@@ -26,7 +25,6 @@ class Embedder(Protocol):
 
 def _tokens(text: str) -> list[str]:
     words = _TOKEN_RE.findall(text.lower())
-    # 中文单字信息量低，补一层相邻二元组，让短语也能命中
     bigrams = [f"{a}~{b}" for a, b in zip(words, words[1:])]
     return words + bigrams
 
@@ -36,7 +34,7 @@ def _hash64(token: str) -> int:
 
 
 class HashingEmbedder:
-    """特征哈希 + 带符号散列。确定性依赖 blake2b，跨进程、跨机器稳定。"""
+    """特征哈希 + 带符号散列。无依赖、确定性，仅作兜底。"""
 
     def __init__(self, dim: int = 256) -> None:
         if dim <= 0:
@@ -55,6 +53,26 @@ class HashingEmbedder:
         return out
 
 
-def build_embedder(dim: int = 256) -> Embedder:
-    """工厂：以后换成真模型只改这里。"""
-    return HashingEmbedder(dim)
+class SentenceTransformerEmbedder:
+    """bge-small-zh-v1.5：中文语义检索，输出 L2 归一向量。"""
+
+    def __init__(self, name: str = "BAAI/bge-small-zh-v1.5") -> None:
+        from sentence_transformers import SentenceTransformer  # 延迟导入，避免无模型时崩
+
+        self._model = SentenceTransformer(name)
+        self.dim = int(self._model.get_embedding_dimension())
+
+    def embed(self, texts: Sequence[str]) -> np.ndarray:
+        vecs = self._model.encode(
+            list(texts), normalize_embeddings=True, show_progress_bar=False
+        )
+        return np.asarray(vecs, dtype=np.float32)
+
+
+def build_embedder(dim: int = 512) -> Embedder:
+    """优先用真嵌入模型；加载失败则退回哈希嵌入（会明显变弱，仅保链路可跑）。"""
+    try:
+        return SentenceTransformerEmbedder("BAAI/bge-small-zh-v1.5")
+    except Exception as exc:  # noqa: BLE001
+        print(f"[embed] 真嵌入模型不可用，退回哈希嵌入：{exc}")
+        return HashingEmbedder(dim)

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>心理支持助手</title>
+<style>
+  :root { --ink:#1f2937; --muted:#6b7280; --brand:#1f3a5f; --bg:#f6f7f9; --card:#fff; --line:#e5e7eb; --green:#2e7d5b; --red:#b3261e; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:-apple-system,"PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif; background:var(--bg); color:var(--ink); }
+  .wrap { max-width:760px; margin:0 auto; height:100vh; display:flex; flex-direction:column; }
+  header { padding:14px 20px; background:var(--brand); color:#fff; }
+  header h1 { margin:0; font-size:18px; font-weight:600; }
+  header p { margin:2px 0 0; font-size:12px; opacity:.8; }
+  #chat { flex:1; overflow-y:auto; padding:20px; }
+  .msg { max-width:86%; margin:0 0 16px; padding:12px 16px; border-radius:14px; line-height:1.7; font-size:15px; white-space:pre-wrap; word-break:break-word; }
+  .user { background:var(--brand); color:#fff; margin-left:auto; border-bottom-right-radius:4px; }
+  .bot { background:var(--card); border:1px solid var(--line); border-bottom-left-radius:4px; }
+  .bot.crisis { border-color:var(--red); background:#fdf0ef; }
+  .bot.error { border-color:#d97706; background:#fef7ec; }
+  .cite { margin-top:10px; font-size:12px; color:var(--muted); }
+  .cite .c { display:block; padding:6px 8px; margin-top:6px; background:#f3f4f6; border-radius:8px; color:#374151; }
+  .cite .c b { color:var(--brand); }
+  footer { padding:12px 20px; background:var(--card); border-top:1px solid var(--line); }
+  .row { display:flex; gap:8px; }
+  #inp { flex:1; padding:12px 14px; border:1px solid var(--line); border-radius:10px; font-size:15px; font-family:inherit; resize:none; height:46px; }
+  #send { padding:0 20px; border:0; border-radius:10px; background:var(--brand); color:#fff; font-size:15px; cursor:pointer; }
+  #send:disabled { opacity:.5; cursor:default; }
+  .footnote { margin-top:8px; font-size:11px; color:var(--muted); }
+  .footnote a { color:var(--red); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🌿 心理支持助手</h1>
+    <p>原型 · 不构成诊断或治疗</p>
+  </header>
+  <div id="chat"></div>
+  <footer>
+    <div class="row">
+      <textarea id="inp" placeholder="说说你现在的困扰…（Enter 发送）"></textarea>
+      <button id="send">发送</button>
+    </div>
+    <div class="footnote">如你或他人有伤害自己的念头，请直接拨打 <a href="tel:12356">12356</a>。</div>
+  </footer>
+</div>
+<script>
+const chat = document.getElementById('chat');
+const inp = document.getElementById('inp');
+const send = document.getElementById('send');
+
+function add(role, text, kind) {
+  const d = document.createElement('div');
+  d.className = 'msg ' + role + (kind ? ' ' + kind : '');
+  d.textContent = text;
+  chat.appendChild(d);
+  chat.scrollTop = chat.scrollHeight;
+  return d;
+}
+
+function addBot(text, kind, hits) {
+  const d = add('bot', text, kind);
+  if (hits && hits.length) {
+    const c = document.createElement('div');
+    c.className = 'cite';
+    c.innerHTML = '<b>来源：</b>';
+    hits.forEach(h => {
+      const s = document.createElement('span');
+      s.className = 'c';
+      s.innerHTML = '<b>' + (h.heading ? h.heading + ' · ' : '') + h.source + '</b>（相关度 ' + h.score + '）<br>' + h.text;
+      c.appendChild(s);
+    });
+    d.appendChild(c);
+  }
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function botHello() {
+  addBot('说说你现在的困扰，我陪你理一理。可以先试试：\n· 最近工作压力很大，晚上睡不着\n· 和老板关系紧张，不知道怎么办\n· 总觉得自己不够好，很焦虑');
+}
+
+async function sendMsg() {
+  const text = inp.value.trim();
+  if (!text) return;
+  add('user', text);
+  inp.value = '';
+  send.disabled = true;
+  const loading = add('bot', '正在查资料…', '');
+  try {
+    const r = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({message: text})
+    });
+    const data = await r.json();
+    loading.remove();
+    if (data.kind === 'crisis') addBot(data.answer, 'crisis', []);
+    else if (data.kind === 'error') addBot(data.answer, 'error', []);
+    else addBot(data.answer, '', data.hits);
+  } catch (e) {
+    loading.remove();
+    addBot('请求失败，请确认后端已启动。', 'error', []);
+  }
+  send.disabled = false;
+  inp.focus();
+}
+
+send.addEventListener('click', sendMsg);
+inp.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
+});
+botHello();
+</script>
+</body>
+</html>

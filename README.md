@@ -13,11 +13,22 @@
 
 ## 当前状态
 
-**设计评审中，尚未开始 Web 与云端编码。** Week 0 检索原型已跑通。
+**MVP 已本地跑通**：爬数据 → bge 嵌入建库 → 聊天 UI → 本地 Qwen 带引用回答，危机熔断。
+
+## 本地运行
+
+```bash
+python3 -m pip install fastapi uvicorn trafilatura lxml_html_clean "sentence-transformers>=3.0" "transformers>=4.40" certifi
+python3 pipeline/crawl.py            # 抓语料 → corpus/processed/articles.jsonl
+python3 pipeline/build_index.py      # 切块+嵌入 → data/index/index.sqlite3
+PYTHONPATH=src python3 -m uvicorn app.main:app --port 8081
+# 浏览器打开 http://127.0.0.1:8081
+```
 
 | 文档 | 内容 |
 | --- | --- |
 | **[项目文档 v0.1](docs/项目文档.md)** | 唯一权威：问题、产品、架构、详细设计、edge cases、UI、部署、路线（含待拍板问题） |
+| [MVP 设计](docs/MVP-设计.md) · [数据 pipeline](docs/数据pipeline.md) | 回答卡交互、pipeline 四阶段 |
 | [项目地图](docs/00-项目地图.md) · [架构决策](docs/01-架构决策.md) | Week 0 原型说明（历史保留） |
 
 ## 仓库里现在有什么
