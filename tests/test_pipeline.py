@@ -7,6 +7,7 @@ import unittest
 from pathlib import Path
 
 from rag.config import Config
+from rag.embed import HashingEmbedder
 from rag.pipeline import Rag
 from rag.store import DimMismatch
 
@@ -34,7 +35,7 @@ class RagPipelineTest(unittest.TestCase):
         (self.raw / "dogs.md").write_text(
             "# 狗\n\n狗需要每天遛两次，喜欢追球。\n", encoding="utf-8"
         )
-        self.rag = Rag(config=make_config(self.root))
+        self.rag = Rag(config=make_config(self.root), embedder=HashingEmbedder(64))
 
     def tearDown(self) -> None:
         self.rag.close()
@@ -68,7 +69,7 @@ class RagPipelineTest(unittest.TestCase):
 
     def test_dim_mismatch_is_reported(self) -> None:
         self.rag.ingest([self.raw])
-        other = Rag(config=make_config(self.root, dim=32))
+        other = Rag(config=make_config(self.root, dim=32), embedder=HashingEmbedder(32))
         try:
             with self.assertRaises(DimMismatch):
                 other.ingest([self.raw])
