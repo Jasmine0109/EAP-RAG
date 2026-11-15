@@ -27,6 +27,7 @@ PYTHONPATH=src python3 -m uvicorn app.main:app --port 8081
 
 | 文档 | 内容 |
 | --- | --- |
+| [文档索引](docs/README.md) | 每个文档是什么、先读哪个 |
 | [项目文档](docs/项目文档.md) | 问题、产品、架构、详细设计、edge cases、部署、路线 |
 | [MVP 设计](docs/MVP-设计.md) | 回答卡交互、先问清楚再回答、危机转介 |
 | [数据 pipeline](docs/数据pipeline.md) | 抓取→清洗→切块→入库；本地开发、云端交付 |
