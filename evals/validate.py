@@ -55,6 +55,8 @@ class Case(BaseModel):
     smoke: bool = False
     owner: str | None = None
     notes: str | None = None
+    created: str | None = None
+    reviewed: str | None = None
 
 
 class Dataset(BaseModel):
