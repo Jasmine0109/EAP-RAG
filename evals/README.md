@@ -19,7 +19,9 @@
 | ⑤ 硬约束 | `must_include` / `must_not_include` | 必须出现/禁止出现的表述 |
 | ⑥ 评分与元数据 | `rubric` `smoke` `owner` `notes` | 质量分、是否进 CI、谁写的 |
 
-> v0.1 只用了必需字段；`tags` / `severity` / `context` 是下一步要补的（`severity` 直接决定该不该转介，`context` 才能测多轮）。
+> v0.2 已补齐 `tags` / `severity` / `owner` / `notes`；`context`（多轮上文）等到支持多轮对话后再加。
+
+`severity` 取值：`low`（一般困扰）/ `medium`（心理困扰或高风险请求）/ `high`（危机，必须转介）。
 
 ## 为什么字段名是英文
 
@@ -93,5 +95,5 @@ python -m eval run --suite full    # 全量
 
 ## 当前进度
 
-- v0.1：13 条（含 6 条 smoke 门禁），覆盖 8 个主题。
-- 目标：扩到 30–40 条，补 `severity` / `context`，然后接 runner + LLM 判官。
+- v0.2：13 条（含 6 条 smoke 门禁），已补 `tags` / `severity` / `owner` / `notes`。
+- 目标：扩到 30–40 条，补 `context`（多轮），然后接 runner + LLM 判官。
