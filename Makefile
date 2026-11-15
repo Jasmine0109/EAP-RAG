@@ -21,8 +21,11 @@ serve: ## 启动聊天界面（http://127.0.0.1:8081）
 test: ## 单元测试
 	$(PY) -m unittest discover -s tests -v
 
+eval-check: ## 校验金标用例（schema）
+	$(PY) evals/validate.py
+
 clean: ## 清理缓存
 	find . -type d -name __pycache__ -prune -exec rm -rf {} +
 	rm -rf .pytest_cache build dist *.egg-info
 
-.PHONY: help install crawl index serve test clean
+.PHONY: help install crawl index serve test eval-check clean

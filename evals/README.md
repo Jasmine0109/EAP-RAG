@@ -60,6 +60,18 @@
 
 为什么拆：全量集调 LLM、慢且贵；冒烟集用最小代价守住最不能错的那几条。
 
+## schema 校验（防止文档与数据脱节）
+
+用例格式由 `evals/validate.py` 里的 Pydantic 模型定义并**强制校验**：
+字段缺失、枚举写错、rubric 超出 1–5、id 重复，都会直接报错。
+
+```bash
+make eval-check      # 或 python evals/validate.py
+```
+
+> 业界没有统一的"金标格式"（OpenAI Evals / promptfoo / RAGAS / LangSmith 各有一套）。
+> 关键不是用谁的标准，而是：**定义一次 schema → 机器校验 → 版本化**，别靠人记。
+
 ## 目录
 
 ```
