@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Runs on every local `git commit`. Same checks as CI, without needing GitHub workflow scope.
+set -euo pipefail
+cd "$(git rev-parse --show-toplevel)"
+
+echo "[pre-commit] validating golden set…"
+PYTHONPATH=src python3 evals/validate.py
+
+echo "[pre-commit] running unit tests…"
+PYTHONPATH=src python3 -m unittest discover -s tests -q
+
+echo "[pre-commit] OK"

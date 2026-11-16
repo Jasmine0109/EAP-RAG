@@ -1,4 +1,5 @@
 PY ?= python3
+DB_URL ?= postgresql:///eap
 export PYTHONPATH := src
 
 .DEFAULT_GOAL := help
@@ -12,11 +13,11 @@ install: ## install dependencies
 crawl: ## crawl whitelisted sources -> corpus/processed/articles.jsonl
 	$(PY) pipeline/crawl.py
 
-index: ## chunk + embed -> index (SQLite, or Postgres if RAG_DB_URL is set)
-	$(PY) pipeline/build_index.py
+index: ## chunk + embed -> Postgres/pgvector (RAG_DB_URL)
+	RAG_DB_URL=$(DB_URL) $(PY) pipeline/build_index.py
 
 serve: ## start the chat UI (http://127.0.0.1:8081)
-	$(PY) -m uvicorn app.main:app --port 8081
+	RAG_DB_URL=$(DB_URL) $(PY) -m uvicorn app.main:app --port 8081
 
 test: ## run unit tests
 	$(PY) -m unittest discover -s tests -v
