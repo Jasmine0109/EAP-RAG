@@ -1,7 +1,7 @@
-"""集中配置：环境变量覆盖默认值。
+"""Configuration: environment variables override defaults.
 
-所有路径默认相对仓库根目录解析，整个目录搬走也不用改配置。
-没有配置文件格式 —— 这个骨架阶段，环境变量足够，少一层抽象。
+All paths are resolved relative to the repo root, so the directory can be moved
+without editing config. No config-file format yet — env vars are enough here.
 """
 
 from __future__ import annotations
@@ -10,7 +10,7 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 
-# src/rag/config.py -> src/rag -> src -> 仓库根
+# src/rag/config.py -> src/rag -> src -> repo root
 ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -35,7 +35,7 @@ def _bool(name: str, default: bool) -> bool:
 
 @dataclass(frozen=True, slots=True)
 class Config:
-    """一次运行需要的全部参数。不可变，方便传给子模块。"""
+    """Everything one run needs. Immutable so it can be passed around safely."""
 
     data_dir: Path
     index_path: Path
@@ -52,17 +52,17 @@ class Config:
 
     def __post_init__(self) -> None:
         if self.chunk_size <= 0:
-            raise ValueError("chunk_size 必须大于 0")
+            raise ValueError("chunk_size must be > 0")
         if not 0 <= self.chunk_overlap < self.chunk_size:
-            raise ValueError("chunk_overlap 必须满足 0 <= overlap < chunk_size")
+            raise ValueError("chunk_overlap must satisfy 0 <= overlap < chunk_size")
         if self.top_k <= 0:
-            raise ValueError("top_k 必须大于 0")
+            raise ValueError("top_k must be > 0")
         if self.embed_dim <= 0:
-            raise ValueError("embed_dim 必须大于 0")
+            raise ValueError("embed_dim must be > 0")
 
 
 def load() -> Config:
-    """从环境变量构造配置。"""
+    """Build a config from environment variables."""
     data_dir = Path(_str("RAG_DATA_DIR", str(ROOT / "data"))).expanduser()
     return Config(
         data_dir=data_dir,

@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>心理支持助手</title>
+<title>Support Assistant</title>
 <style>
   :root { --ink:#1f2937; --muted:#6b7280; --brand:#1f3a5f; --bg:#f6f7f9; --card:#fff; --line:#e5e7eb; --green:#2e7d5b; --red:#b3261e; }
   * { box-sizing:border-box; }
-  body { margin:0; font-family:-apple-system,"PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif; background:var(--bg); color:var(--ink); }
+  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; background:var(--bg); color:var(--ink); }
   .wrap { max-width:760px; margin:0 auto; height:100vh; display:flex; flex-direction:column; }
   header { padding:14px 20px; background:var(--brand); color:#fff; }
   header h1 { margin:0; font-size:18px; font-weight:600; }
@@ -33,16 +33,16 @@
 <body>
 <div class="wrap">
   <header>
-    <h1>🌿 心理支持助手</h1>
-    <p>原型 · 不构成诊断或治疗</p>
+    <h1>🌿 Support Assistant</h1>
+    <p>prototype · not medical advice</p>
   </header>
   <div id="chat"></div>
   <footer>
     <div class="row">
-      <textarea id="inp" placeholder="说说你现在的困扰…（Enter 发送）"></textarea>
-      <button id="send">发送</button>
+      <textarea id="inp" placeholder="Tell me what's going on… (Enter to send)"></textarea>
+      <button id="send">Send</button>
     </div>
-    <div class="footnote">如你或他人有伤害自己的念头，请直接拨打 <a href="tel:12356">12356</a>。</div>
+    <div class="footnote">If you or someone else is at risk, call <a href="tel:988">988</a>.</div>
   </footer>
 </div>
 <script>
@@ -64,11 +64,11 @@ function addBot(text, kind, hits) {
   if (hits && hits.length) {
     const c = document.createElement('div');
     c.className = 'cite';
-    c.innerHTML = '<b>来源：</b>';
+    c.innerHTML = '<b>Sources:</b>';
     hits.forEach(h => {
       const s = document.createElement('span');
       s.className = 'c';
-      s.innerHTML = '<b>' + (h.heading ? h.heading + ' · ' : '') + h.source + '</b>（相关度 ' + h.score + '）<br>' + h.text;
+      s.innerHTML = '<b>' + (h.heading ? h.heading + ' · ' : '') + h.source + '</b> (score ' + h.score + ')<br>' + h.text;
       c.appendChild(s);
     });
     d.appendChild(c);
@@ -77,7 +77,7 @@ function addBot(text, kind, hits) {
 }
 
 function botHello() {
-  addBot('说说你现在的困扰，我陪你理一理。可以先试试：\n· 最近工作压力很大，晚上睡不着\n· 和老板关系紧张，不知道怎么办\n· 总觉得自己不够好，很焦虑');
+  addBot("Tell me what's been going on, and I'll help you sort through it.\nTry: \"I've been really stressed at work and can't sleep.\"");
 }
 
 async function sendMsg() {
@@ -86,7 +86,7 @@ async function sendMsg() {
   add('user', text);
   inp.value = '';
   send.disabled = true;
-  const loading = add('bot', '正在查资料…', '');
+  const loading = add('bot', 'Looking through the material…', '');
   try {
     const r = await fetch('/api/chat', {
       method: 'POST',
@@ -100,7 +100,7 @@ async function sendMsg() {
     else addBot(data.answer, '', data.hits);
   } catch (e) {
     loading.remove();
-    addBot('请求失败，请确认后端已启动。', 'error', []);
+    addBot('Request failed. Is the backend running?', 'error', []);
   }
   send.disabled = false;
   inp.focus();

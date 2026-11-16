@@ -1,4 +1,4 @@
-"""端到端测试：临时索引 + 哈希嵌入 + 离线生成，不联网、不碰 data/。"""
+"""End-to-end tests: temporary index + hashing embedder + offline generation. No network, no data/."""
 
 from __future__ import annotations
 
@@ -30,10 +30,10 @@ class RagPipelineTest(unittest.TestCase):
         self.raw = self.root / "raw"
         self.raw.mkdir()
         (self.raw / "cats.md").write_text(
-            "# 猫\n\n猫喜欢晒太阳，每天要睡十六个小时。\n", encoding="utf-8"
+            "# Cats\n\nCats love sunbathing and sleep sixteen hours a day.\n", encoding="utf-8"
         )
         (self.raw / "dogs.md").write_text(
-            "# 狗\n\n狗需要每天遛两次，喜欢追球。\n", encoding="utf-8"
+            "# Dogs\n\nDogs need two walks a day and love chasing balls.\n", encoding="utf-8"
         )
         self.rag = Rag(config=make_config(self.root), embedder=HashingEmbedder(64))
 
@@ -46,13 +46,13 @@ class RagPipelineTest(unittest.TestCase):
         self.assertEqual(stats.documents, 2)
         self.assertGreater(stats.chunks, 0)
 
-        hits = self.rag.retrieve("猫喜欢什么", k=1)
+        hits = self.rag.retrieve("What do cats like?", k=1)
         self.assertEqual(len(hits), 1)
         self.assertEqual(hits[0].chunk.source, "cats.md")
 
     def test_ask_offline_returns_context(self) -> None:
         self.rag.ingest([self.raw])
-        answer = self.rag.ask("狗需要遛几次？", offline=True)
+        answer = self.rag.ask("How many walks do dogs need?", offline=True)
         self.assertEqual(answer.mode, "offline")
         self.assertTrue(answer.hits)
         self.assertIn("dogs.md", answer.text)
@@ -65,7 +65,7 @@ class RagPipelineTest(unittest.TestCase):
 
     def test_empty_index_raises(self) -> None:
         with self.assertRaises(RuntimeError):
-            self.rag.retrieve("任何问题")
+            self.rag.retrieve("any question")
 
     def test_dim_mismatch_is_reported(self) -> None:
         self.rag.ingest([self.raw])

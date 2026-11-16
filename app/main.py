@@ -1,4 +1,4 @@
-"""eap-rag 后端：单页 UI + /api/chat（RAG 检索 + 本地 Qwen 生成 + 危机熔断）。"""
+"""eap-rag backend: single-page UI + /api/chat (RAG retrieval + local Qwen + crisis gate)."""
 from __future__ import annotations
 
 import sys
@@ -26,18 +26,20 @@ def get_rag() -> Rag:
 
 
 CRISIS_WORDS = [
-    "不想活", "自杀", "自残", "结束生命", "轻生", "活着没意思", "想死",
-    "解脱", "伤害自己", "活不下去", "跳楼", "割腕", "想结束",
+    "kill myself", "suicide", "suicidal", "end my life", "don't want to live",
+    "don't want to be alive", "want to die", "self-harm", "self harm", "hurt myself",
+    "no reason to live", "better off dead", "end it all", "can't go on", "just disappear",
 ]
 
 CRISIS_REPLY = (
-    "我听到你现在很痛苦，谢谢你愿意把这件事告诉我。你能说出来，这已经很不容易。\n\n"
-    "你现在的安全是最重要的，请现在联系（下面是 24 小时有人接听的热线，"
-    "电话那头是受过专门训练的人，能更好地帮你）：\n\n"
-    "· 全国心理援助热线：12356\n"
-    "· 北京心理危机研究与干预中心：010-82951332（24 小时）\n"
-    "· 紧急情况请拨 110 / 急救 120\n\n"
-    "如果可以，告诉一个你信任的人，别一个人待着。我在这里陪你，但请先打上面的电话。"
+    "I can hear how much pain you're in, and I'm glad you told me. That took courage.\n\n"
+    "Your safety matters most right now. I can't replace professional crisis support, "
+    "but these lines are staffed 24/7 by trained people:\n\n"
+    "· 988 Suicide & Crisis Lifeline — call or text 988\n"
+    "· SAMHSA National Helpline — 1-800-662-4357\n"
+    "· Emergency — call 911\n\n"
+    "If you are in immediate danger, call 911 and try to stay with someone you trust. "
+    "Would you be willing to call one of these numbers now?"
 )
 
 
@@ -54,15 +56,15 @@ def index() -> str:
 def chat(body: ChatIn) -> dict:
     msg = (body.message or "").strip()
     if not msg:
-        return {"kind": "error", "answer": "请先说说你的困扰。"}
-    if any(w in msg for w in CRISIS_WORDS):
+        return {"kind": "error", "answer": "Please tell me what's going on."}
+    if any(w in msg.lower() for w in CRISIS_WORDS):
         return {"kind": "crisis", "answer": CRISIS_REPLY, "hits": []}
 
     rag = get_rag()
     try:
         ans = rag.ask(msg)
     except Exception as exc:  # noqa: BLE001
-        return {"kind": "error", "answer": f"出错了：{exc}", "hits": []}
+        return {"kind": "error", "answer": f"Something went wrong: {exc}", "hits": []}
 
     hits = [
         {

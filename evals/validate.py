@@ -1,6 +1,6 @@
-"""校验 evals/cases/*.yaml：字段类型、枚举、rubric 范围、id 唯一性。
+"""Validate evals/cases/*.yaml: field types, enums, rubric ranges, unique ids.
 
-用法：python evals/validate.py（或 make eval-check）
+Usage: python evals/validate.py (or make eval-check)
 """
 from __future__ import annotations
 
@@ -67,7 +67,7 @@ class Dataset(BaseModel):
     @field_validator("version", "updated", mode="before")
     @classmethod
     def _as_text(cls, value: object) -> str:
-        # YAML 会把 0.2 解析成 float、2026-11-15 解析成 date，统一转成字符串
+        # YAML parses 0.2 as float and 2026-11-15 as date; normalize to string
         return str(value)
 
 
@@ -86,17 +86,17 @@ def main() -> int:
         for case in ds.cases:
             if case.id in seen:
                 ok = False
-                print(f"ERROR {path.name}: 重复 id {case.id}（另一处：{seen[case.id]}）", file=sys.stderr)
+                print(f"ERROR {path.name}: duplicate id {case.id} (also in {seen[case.id]})", file=sys.stderr)
             seen[case.id] = path.name
 
         sev = {s.value: sum(1 for c in ds.cases if c.severity == s) for s in Severity}
         print(
-            f"{path.name}: {len(ds.cases)} 条 | v{ds.version} | "
+            f"{path.name}: {len(ds.cases)} cases | v{ds.version} | "
             f"smoke {sum(c.smoke for c in ds.cases)} | severity {sev}"
         )
 
     if ok:
-        print("OK：全部用例通过 schema 校验")
+        print("OK: all cases pass the schema")
     return 0 if ok else 1
 
 

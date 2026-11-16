@@ -1,4 +1,8 @@
-"""抓取白名单源，提取标题+正文，存 corpus/raw 和 corpus/processed/articles.jsonl。"""
+"""Crawl whitelisted sources, extract title + body, save to corpus/raw and corpus/processed/articles.jsonl.
+
+Usage: python pipeline/crawl.py
+Depends on: trafilatura (HTML -> text)
+"""
 from __future__ import annotations
 
 import json
@@ -21,8 +25,6 @@ HEADERS = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36"
 }
 
-GENERIC_TITLE_MARKS = ("科普栏目", "中国科学院心理研究所--", "首页")
-
 
 def fetch(url: str) -> str:
     ctx = ssl.create_default_context(cafile=certifi.where())
@@ -38,31 +40,17 @@ def fetch(url: str) -> str:
 
 
 def _clean(text: str) -> str:
-    # 去掉 CAS 网页的面包屑与工具栏噪声
-    text = re.sub(r"您的位置[:：][^\n]*", "", text)
-    text = re.sub(r"字体大小\s*[:：]\s*小\s*中\s*大", "", text)
-    text = re.sub(r"^\s*(打印|关闭)\s*$", "", text, flags=re.M)
-    text = re.sub(r"\n{3,}", "\n\n", text)
-    return text.strip()
+    return re.sub(r"\n{3,}", "\n\n", text).strip()
 
 
 def _title(html: str, url: str, text: str) -> str:
     md = trafilatura.extract_metadata(html)
     if md and getattr(md, "title", None):
-        t = md.title.strip()
-        if t and not any(m in t for m in GENERIC_TITLE_MARKS):
-            return t
+        return md.title.strip()
     m = re.search(r"<title[^>]*>(.*?)</title>", html, re.I | re.S)
-    if m:
-        t = m.group(1).strip()
-        if t and not any(mark in t for mark in GENERIC_TITLE_MARKS):
-            return t
-    # 兜底：从正文里取「关闭」之后、换行/「作者」之前的一小段当标题
-    seg = re.sub(r".*?关闭\s*", "", text[:400], count=1, flags=re.S)
-    seg = re.split(r"\n|作者\s*[:：]", seg)[0].strip()
-    if 2 <= len(seg) <= 40:
-        return seg
-    return text[:30].strip()
+    if m and m.group(1).strip():
+        return m.group(1).strip()
+    return text[:30].strip() or urlparse(url).path.split("/")[-1]
 
 
 def main() -> int:
@@ -77,7 +65,7 @@ def main() -> int:
             html = fetch(url)
             raw_text = trafilatura.extract(html, url=url, include_comments=False, include_tables=False)
             if not raw_text or len(raw_text.strip()) < 200:
-                print(f"SKIP  {source:9s}  (正文过短/未提取到)  {url}")
+                print(f"SKIP  {source:12s}  (too short / no body)  {url}")
                 continue
             text = _clean(raw_text)
             title = _title(html, url, text)
@@ -88,15 +76,15 @@ def main() -> int:
             (RAW / dom / f"{slug}.html").write_text(html, encoding="utf-8")
 
             records.append({"source": source, "url": url, "title": title, "text": text})
-            print(f"OK    {source:9s} {len(text):6d} chars  {title[:55]}")
+            print(f"OK    {source:12s} {len(text):6d} chars  {title[:55]}")
         except Exception as exc:  # noqa: BLE001
-            print(f"ERR   {source:9s} {repr(exc)[:100]}  {url}")
+            print(f"ERR   {source:12s} {repr(exc)[:100]}  {url}")
         time.sleep(0.4)
 
     (PROCESSED / "articles.jsonl").write_text(
         "\n".join(json.dumps(r, ensure_ascii=False) for r in records), encoding="utf-8"
     )
-    print(f"\nDONE  {len(records)} 篇 → corpus/processed/articles.jsonl")
+    print(f"\nDONE  {len(records)} articles -> corpus/processed/articles.jsonl")
     return 0
 
 

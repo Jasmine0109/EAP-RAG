@@ -1,7 +1,8 @@
-"""Postgres + pgvector 存储。接口与 store.Store 一致，可互换。
+"""Postgres + pgvector store. Same interface as store.Store, interchangeable.
 
-用法：RAG_DB_URL=postgresql:///eap python pipeline/build_index.py
+Usage: RAG_DB_URL=postgresql:///eap python pipeline/build_index.py
 """
+
 from __future__ import annotations
 
 from typing import Sequence
@@ -42,11 +43,11 @@ class PostgresStore:
         self._conn.commit()
         self._dim = 512
 
-    # ---- 写入 ---------------------------------------------------------
+    # ---- writes -------------------------------------------------------
 
     def replace_doc(self, doc_id: str, chunks: Sequence[Chunk], vectors: np.ndarray) -> None:
         if len(chunks) != len(vectors):
-            raise ValueError(f"chunks({len(chunks)}) 与 vectors({len(vectors)}) 数量不一致")
+            raise ValueError(f"chunks({len(chunks)}) and vectors({len(vectors)}) differ in count")
         if not chunks:
             return
         rows = [
@@ -68,7 +69,7 @@ class PostgresStore:
             cur.execute("DELETE FROM meta")
         self._conn.commit()
 
-    # ---- 读取 ---------------------------------------------------------
+    # ---- reads --------------------------------------------------------
 
     def count(self) -> int:
         with self._conn.cursor() as cur:

@@ -1,4 +1,4 @@
-"""领域数据结构。保持极简：只有块、命中、答案三种东西。"""
+"""Domain types. Keep it minimal: chunk, hit, answer, ingest stats."""
 
 from __future__ import annotations
 
@@ -7,12 +7,12 @@ from dataclasses import dataclass, field
 
 @dataclass(slots=True)
 class Chunk:
-    """文档切出来的一块。text 是要进 prompt 的正文。"""
+    """A piece of a document. `text` is what goes into the prompt."""
 
-    doc_id: str          # 相对路径，稳定且人类可读
-    source: str          # 展示用的来源（原文件名）
-    index: int           # 块在文档内的序号，从 0 开始
-    heading: str         # 所属小节标题，用于回答时标注出处
+    doc_id: str          # relative path, stable and human-readable
+    source: str          # display name (original file name)
+    index: int           # position inside the document, starting at 0
+    heading: str         # section heading, used for citations
     text: str
 
     @property
@@ -22,7 +22,7 @@ class Chunk:
 
 @dataclass(slots=True)
 class Hit:
-    """一次检索结果：块 + 相似度分数（越大越相关）。"""
+    """One retrieval result: a chunk plus a similarity score (higher is better)."""
 
     chunk: Chunk
     score: float
@@ -30,7 +30,7 @@ class Hit:
 
 @dataclass(slots=True)
 class Answer:
-    """最终回复。mode 区分走了 LLM 还是只做了检索。"""
+    """Final reply. `mode` tells whether an LLM was used."""
 
     text: str
     hits: list[Hit] = field(default_factory=list)
@@ -39,7 +39,7 @@ class Answer:
 
 @dataclass(slots=True)
 class IngestStats:
-    """一次入库的统计，CLI 直接打印。"""
+    """Counters for one ingest run, printed by the CLI."""
 
     documents: int = 0
     chunks: int = 0

@@ -1,4 +1,4 @@
-"""切块逻辑的单元测试：边界比功能更值得测。"""
+"""Chunking tests: boundaries matter more than features."""
 
 from __future__ import annotations
 
@@ -11,13 +11,13 @@ from rag.ingest import chunk_document, iter_files, split_text
 
 class SplitTextTest(unittest.TestCase):
     def test_single_short_text_is_one_chunk(self) -> None:
-        chunks = split_text("短文本", size=100, overlap=10)
+        chunks = split_text("short text", size=100, overlap=10)
         self.assertEqual(len(chunks), 1)
-        self.assertEqual(chunks[0].text, "短文本")
+        self.assertEqual(chunks[0].text, "short text")
         self.assertEqual(chunks[0].index, 0)
 
     def test_chunks_never_exceed_size(self) -> None:
-        text = "\n\n".join("段落" * 20 for _ in range(20))  # 每段 40 字
+        text = "\n\n".join("word " * 8 for _ in range(20))  # 40 chars per paragraph
         chunks = split_text(text, size=100, overlap=30)
         self.assertGreater(len(chunks), 1)
         for chunk in chunks:
@@ -30,15 +30,15 @@ class SplitTextTest(unittest.TestCase):
         self.assertTrue(chunks[1].text.startswith("D" * 20), chunks[1].text[:40])
 
     def test_long_paragraph_is_hard_split(self) -> None:
-        chunks = split_text("字" * 250, size=100, overlap=0)
+        chunks = split_text("x" * 250, size=100, overlap=0)
         self.assertEqual(len(chunks), 3)
         self.assertTrue(all(len(c.text) <= 100 for c in chunks))
 
     def test_heading_is_tracked(self) -> None:
-        text = "# 标题一\n\n" + "x" * 60 + "\n\n## 标题二\n\nyyy"
+        text = "# Heading One\n\n" + "x" * 60 + "\n\n## Heading Two\n\nyyy"
         chunks = split_text(text, size=70, overlap=0)
-        self.assertEqual(chunks[0].heading, "标题一")
-        self.assertEqual(chunks[-1].heading, "标题二")
+        self.assertEqual(chunks[0].heading, "Heading One")
+        self.assertEqual(chunks[-1].heading, "Heading Two")
 
     def test_invalid_params_rejected(self) -> None:
         with self.assertRaises(ValueError):
@@ -49,7 +49,7 @@ class SplitTextTest(unittest.TestCase):
 
 class ChunkDocumentTest(unittest.TestCase):
     def test_ids_and_source_are_filled(self) -> None:
-        chunks = chunk_document("正文", doc_id="notes/a.md", source="a.md", size=100, overlap=0)
+        chunks = chunk_document("body text", doc_id="notes/a.md", source="a.md", size=100, overlap=0)
         self.assertEqual(chunks[0].doc_id, "notes/a.md")
         self.assertEqual(chunks[0].source, "a.md")
         self.assertEqual(chunks[0].id, "notes/a.md:0")

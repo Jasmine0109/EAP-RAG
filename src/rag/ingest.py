@@ -1,10 +1,10 @@
-"""文档加载与切块。
+"""Document loading and chunking.
 
-切块策略（有意保守，方便先跑通）：
-- 以空行为段落边界，优先在段落之间切；
-- 单块不超过 chunk_size 字符（超长段落按句末硬切）；
-- 块间尽量保留 overlap 字符的尾部内容，但**放不下就放弃重叠**，
-  保证任何块都不会超过 chunk_size —— 宁可少重叠，不要超长块。
+Chunking strategy (deliberately conservative):
+- split on blank lines (paragraphs), prefer cutting between paragraphs;
+- a chunk never exceeds chunk_size characters (long paragraphs are hard-split at sentence ends);
+- keep up to `overlap` characters of the tail when it fits, otherwise skip the overlap —
+  never produce an oversized chunk.
 """
 
 from __future__ import annotations
@@ -18,11 +18,11 @@ from .types import Chunk
 TEXT_SUFFIXES = {".md", ".markdown", ".txt"}
 _HEADING_RE = re.compile(r"^#{1,6}\s+(.+?)\s*#*\s*$")
 _PARAGRAPH_RE = re.compile(r"\n\s*\n")
-_SENTENCE_END = "。！？!?；;"
+_SENTENCE_END = "。！？!?；;."
 
 
 def iter_files(root: Path) -> Iterator[Path]:
-    """列出 root 下所有可入库文件；隐藏目录（.git、.venv 等）直接跳过。"""
+    """Yield ingestable files; skip hidden directories (.git, .venv, ...)."""
     if root.is_file():
         if root.suffix.lower() in TEXT_SUFFIXES:
             yield root
@@ -36,7 +36,7 @@ def iter_files(root: Path) -> Iterator[Path]:
 
 
 def doc_id_for(path: Path, base: Path) -> str:
-    """doc_id 用相对路径，既可读又稳定。"""
+    """Use the relative path as doc_id: readable and stable."""
     try:
         return path.relative_to(base).as_posix()
     except ValueError:
@@ -50,7 +50,7 @@ def _heading_of(paragraph: str) -> str | None:
 
 
 def _split_long(paragraph: str, size: int) -> list[str]:
-    """把超长段落切成每段不超过 size 字符，尽量在句末断开。"""
+    """Split an oversized paragraph into pieces of at most `size` chars."""
     if len(paragraph) <= size:
         return [paragraph]
     pieces: list[str] = []
@@ -73,7 +73,7 @@ def _join(paragraphs: list[str]) -> str:
 
 
 def _take_tail(paragraphs: list[str], overlap: int) -> list[str]:
-    """从段落尾部取几段，总长不超过 overlap。"""
+    """Take trailing paragraphs whose total length fits in `overlap`."""
     if overlap <= 0:
         return []
     tail: list[str] = []
@@ -88,17 +88,17 @@ def _take_tail(paragraphs: list[str], overlap: int) -> list[str]:
 
 
 def split_text(text: str, size: int = 800, overlap: int = 120) -> list[Chunk]:
-    """把纯文本切成 Chunk 列表，index 和 heading 由本函数填好。"""
+    """Split plain text into chunks; fills index and heading."""
     if size <= 0:
-        raise ValueError("size 必须大于 0")
+        raise ValueError("size must be > 0")
     if not 0 <= overlap < size:
-        raise ValueError("overlap 必须满足 0 <= overlap < size")
+        raise ValueError("overlap must satisfy 0 <= overlap < size")
 
     paragraphs = [p.strip() for p in _PARAGRAPH_RE.split(text) if p.strip()]
     chunks: list[Chunk] = []
     buf: list[str] = []
-    heading = ""          # 当前生效的小节标题
-    chunk_heading = ""    # 当前缓冲块开头时的标题
+    heading = ""          # currently active heading
+    chunk_heading = ""    # heading at the start of the current buffer
 
     def flush() -> None:
         nonlocal buf, chunk_heading
@@ -118,7 +118,7 @@ def split_text(text: str, size: int = 800, overlap: int = 120) -> list[Chunk]:
             if buf and len(_join(buf + [piece])) > size:
                 tail = _take_tail(buf, overlap)
                 flush()
-                # 重叠部分放得下才带上，否则放弃（保证块不超长）
+                # keep the overlap only if it still fits
                 if tail and len(_join(tail + [piece])) <= size:
                     buf = tail
                     chunk_heading = chunks[-1].heading
@@ -138,7 +138,7 @@ def chunk_document(
     size: int = 800,
     overlap: int = 120,
 ) -> list[Chunk]:
-    """切块并补齐 doc_id / source。"""
+    """Chunk a document and fill doc_id/source."""
     chunks = split_text(text, size=size, overlap=overlap)
     for chunk in chunks:
         chunk.doc_id = doc_id

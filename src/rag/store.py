@@ -1,8 +1,8 @@
-"""SQLite 向量存储 + 暴力余弦检索。
+"""SQLite vector store + brute-force cosine search.
 
-为什么不是向量数据库：几千到几万块时，一次矩阵乘法（毫秒级）比分页查询还快，
-而且零外部服务、单文件可拷走。规模上到十万级再换 sqlite-vec / FAISS / Qdrant，
-接口（add / replace_doc / search / reset）保持不动即可。
+Why not a vector database: at a few thousand chunks, one matrix multiply is faster
+than a paginated query, and there is no external service to run. Switch to
+sqlite-vec / FAISS / Qdrant when you reach ~100k chunks; the interface stays the same.
 """
 
 from __future__ import annotations
@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS meta (
 
 
 class DimMismatch(ValueError):
-    """索引维度与当前嵌入维度不一致 —— 只能重建。"""
+    """Index dimension does not match the current embedder — rebuild required."""
 
 
 class Store:
@@ -56,7 +56,7 @@ class Store:
         if stored is not None:
             self._dim = int(stored)
 
-    # ---- 元信息 -------------------------------------------------------
+    # ---- metadata -----------------------------------------------------
 
     def _meta_get(self, key: str) -> str | None:
         row = self._conn.execute("SELECT value FROM meta WHERE key = ?", (key,)).fetchone()
@@ -72,16 +72,16 @@ class Store:
             self._dim = dim
         elif self._dim != dim:
             raise DimMismatch(
-                f"索引维度是 {self._dim}，当前嵌入维度是 {dim}。"
-                f"换嵌入模型后需要重建索引：rag reset && rag ingest <路径>"
+                f"index dimension is {self._dim}, current embedder is {dim}. "
+                f"Rebuild the index: rag reset && rag ingest <path>"
             )
 
-    # ---- 写入 ---------------------------------------------------------
+    # ---- writes -------------------------------------------------------
 
     def replace_doc(self, doc_id: str, chunks: Sequence[Chunk], vectors: np.ndarray) -> None:
-        """整篇替换：同一 doc_id 重复入库不会产生重复块（幂等）。"""
+        """Replace a whole document; re-ingesting the same doc_id is idempotent."""
         if len(chunks) != len(vectors):
-            raise ValueError(f"chunks({len(chunks)}) 与 vectors({len(vectors)}) 数量不一致")
+            raise ValueError(f"chunks({len(chunks)}) and vectors({len(vectors)}) differ in count")
         if not chunks:
             return
         vectors = np.asarray(vectors, dtype=np.float32)
@@ -106,7 +106,7 @@ class Store:
             self._conn.execute("DELETE FROM meta")
         self._dim = None
 
-    # ---- 读取 ---------------------------------------------------------
+    # ---- reads --------------------------------------------------------
 
     def count(self) -> int:
         return int(self._conn.execute("SELECT COUNT(*) FROM chunks").fetchone()[0])

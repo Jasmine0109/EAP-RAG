@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "rag"
 version = "0.1.0"
-description = "本地 RAG 知识库骨架：入库 → 切块 → 向量化 → 检索 → 生成"
+description = "Local RAG knowledge base skeleton: ingest -> chunk -> embed -> retrieve -> generate"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = ["numpy>=1.24"]

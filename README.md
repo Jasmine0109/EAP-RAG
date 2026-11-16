@@ -1,29 +1,30 @@
-# eap-rag · 职场心理与生活支持助手
+# eap-rag · Workplace Mental Health Support Assistant
 
-任何人打开一个网页，把困扰说出来（工作压力、人际关系、晋升瓶颈、焦虑、抑郁情绪、失眠……），
-系统从知识库里检索权威科普与自助方法，给出**有出处、有边界、可执行**的回答；出现危机信号直接转介。
+Anyone can open a web page, describe what's bothering them (work stress, relationships, career plateau, anxiety, low mood, insomnia), and get an answer that is **grounded, bounded, and actionable** — retrieved from authoritative sources, with citations. Crisis signals trigger an immediate escalation.
 
-> 输入：「最近工作压力很大，晚上睡不着，白天没精神」
-> → 先共情 + 追问具体情境（没搞懂原因不给建议）
-> → 再给回答卡：共情 + 建议 + 一个可执行动作 + 何时求助 + 来源引用
+> Input: "I've been really stressed at work and can't sleep."
+> → Empathize, then run a short **intake** (what happened, what hurts most, feelings) before giving advice.
 >
-> 输入：「活着没意思」→ **熔断**，只给热线和求助路径，不生成任何建议。
+> Input: "I don't want to be alive anymore." → **Escalate**: 988 / 911, no advice, no questions.
 
-## 当前状态
+## Status
 
-**MVP 已本地跑通**：爬虫 → bge-small-zh 嵌入建库 → FastAPI 聊天 UI → 本地 Qwen 带引用回答 + 危机熔断。
+MVP runs locally end-to-end: crawler → `bge-small-zh-v1.5` embeddings → Postgres/pgvector (or SQLite) → FastAPI chat UI → local Qwen with citations + crisis escalation.
 
-## 本地运行
+## Run locally
 
 ```bash
-python3 -m pip install fastapi uvicorn trafilatura lxml_html_clean "sentence-transformers>=3.0" "transformers>=4.40" certifi
-python3 pipeline/crawl.py            # 抓语料 → corpus/processed/articles.jsonl
-python3 pipeline/build_index.py      # 切块+嵌入 → data/index/index.sqlite3
+python3 -m pip install fastapi uvicorn trafilatura lxml_html_clean \
+  "sentence-transformers>=3.0" "transformers>=4.40" certifi psycopg2-binary pypdf
+
+python3 pipeline/crawl.py            # crawl whitelisted sources → corpus/processed/articles.jsonl
+python3 pipeline/build_index.py      # chunk + embed → SQLite (data/index/index.sqlite3)
+
 PYTHONPATH=src python3 -m uvicorn app.main:app --port 8081
-# 浏览器打开 http://127.0.0.1:8081
+# open http://127.0.0.1:8081
 ```
 
-默认存 SQLite（`data/index/index.sqlite3`）。用 Postgres + pgvector：
+Using Postgres + pgvector instead of SQLite:
 
 ```bash
 createdb eap
@@ -32,39 +33,48 @@ RAG_DB_URL=postgresql:///eap python3 pipeline/build_index.py
 RAG_DB_URL=postgresql:///eap PYTHONPATH=src python3 -m uvicorn app.main:app --port 8081
 ```
 
-## 文档
+## Docs
 
-| 文档 | 内容 |
+| Doc | Content |
 | --- | --- |
-| [文档索引](docs/README.md) | 每个文档是什么、先读哪个 |
-| [项目文档](docs/项目文档.md) | 问题、产品、架构、详细设计、edge cases、部署、路线 |
-| [MVP 设计](docs/MVP-设计.md) | 回答卡交互、先问清楚再回答、危机转介 |
-| [数据 pipeline](docs/数据pipeline.md) | 抓取→清洗→切块→入库；本地开发、云端交付 |
-| **[RAG 与 Agent 学习笔记](docs/learning/RAG与Agent学习笔记.md)** | 知识地图、RAG 0→1、Agent 多轮、观测、金标、rubric、问答、自测 |
-| [问答与不懂清单](docs/问答与不懂清单.md) | 逐条问题与答案，持续更新 |
+| [Docs index](docs/README.md) | what each doc is, where to start |
+| [PROJECT](docs/PROJECT.md) | product, architecture, roadmap |
+| [MVP-DESIGN](docs/MVP-DESIGN.md) | intake flow, answer card, crisis design |
+| [DATA-PIPELINE](docs/DATA-PIPELINE.md) | crawl → clean → chunk → embed |
+| [SAFETY-DESIGN](docs/SAFETY-DESIGN.md) | self-help skills, hard boundaries |
+| [QA-LOG](docs/QA-LOG.md) | questions and answers |
+| [Learning notes (Chinese)](docs/learning/RAG-AND-AGENT.md) | RAG/Agent concepts |
 
-## 仓库结构
+## Repository layout
 
 ```
 eap-rag/
-├── app/            # FastAPI + 单页聊天 UI（app/main.py, app/static/index.html）
-├── pipeline/       # crawl.py（抓取）、build_index.py（切块+嵌入+入库）
-├── src/rag/        # 核心：config / types / ingest / embed / store / generate / pipeline
-├── corpus/         # seeds.json（白名单）、raw/（HTML）、processed/（jsonl）
-├── data/           # index（SQLite，gitignore）
-├── evals/          # 金标种子用例
-└── docs/           # 项目文档 + learning/ 学习笔记
+├── app/            # FastAPI + single-page chat UI
+├── pipeline/       # crawl.py, build_index.py
+├── src/rag/        # core: config/types/ingest/embed/store/pg_store/generate/pipeline
+├── corpus/         # seeds.json (whitelist), raw/, processed/
+├── data/           # index (SQLite, gitignored)
+├── evals/          # golden set (core-en.yaml) + validator
+└── docs/           # project docs + learning/
 ```
 
-## 下一步
+## Golden set
 
-1. **金标扩到 30 条**，跑出基线指标（Recall@5、引用支撑率、转介召回）——先有尺子。
-2. 给 `/api/chat` 加**最小会话状态**（最近几轮 + 当前 goal）。
-3. 语料升级为权威源（临床指南 / 官方科普 / 法规），每条带证据等级。
-4. 云端部署（R2 + Supabase + Fly），公开可访问。
+`evals/cases/core-en.yaml` (v1.0) is the current baseline, written against the English corpus.
+The old Chinese baseline is archived at `evals/cases/archive/core-zh-v0.2.yaml` for history only.
 
-## 边界
+```bash
+make eval-check     # validate the golden set against the Pydantic schema
+```
 
-这是**参考实现与作品集项目**，不是可上线的 EAP 服务：
-不做诊断、不做治疗、不做危机干预本身；公开演示必须保留免责声明与危机资源；
-语料许可（WHO 非商业条款）在商业化前需重新评估。
+## Next
+
+1. Build the eval runner (run v1.0 → behavior accuracy, source recall, rubric scores).
+2. Implement the intake state machine (sessions, stages, safety gate).
+3. Chunking experiment: compare chunk sizes on retrieval recall.
+
+## Boundaries
+
+This is a **reference implementation / portfolio project**, not a production EAP service.
+It does not diagnose, treat, or replace professional care; crisis responses only escalate.
+Source licensing (WHO CC BY-NC-SA, etc.) must be re-checked before any commercial use.

@@ -1,9 +1,9 @@
-"""向量化。
+"""Embeddings.
 
-生产用 bge-small-zh-v1.5（中文检索，512 维，CPU 可跑）；
-哈希嵌入只作无网络/无模型时的兜底，接口一致（dim + embed）。
-换模型：实现同样的接口，在 build_embedder() 里返回即可。
-注意：换维度后旧索引要重建（索引文件可删，语料在 corpus/processed 可重跑）。
+Production: bge-small-zh-v1.5 (512-d, Chinese/multilingual, CPU-friendly).
+The hashing embedder is a fallback for offline/no-model environments; same interface.
+To swap models, implement `dim` + `embed()` and return it from `build_embedder()`.
+Changing the dimension requires rebuilding the index.
 """
 
 from __future__ import annotations
@@ -34,11 +34,11 @@ def _hash64(token: str) -> int:
 
 
 class HashingEmbedder:
-    """特征哈希 + 带符号散列。无依赖、确定性，仅作兜底。"""
+    """Feature hashing with signed buckets. No deps, deterministic; fallback only."""
 
     def __init__(self, dim: int = 256) -> None:
         if dim <= 0:
-            raise ValueError("dim 必须大于 0")
+            raise ValueError("dim must be > 0")
         self.dim = dim
 
     def embed(self, texts: Sequence[str]) -> np.ndarray:
@@ -54,10 +54,10 @@ class HashingEmbedder:
 
 
 class SentenceTransformerEmbedder:
-    """bge-small-zh-v1.5：中文语义检索，输出 L2 归一向量。"""
+    """bge-small-zh-v1.5: Chinese/multilingual retrieval, L2-normalized output."""
 
     def __init__(self, name: str = "BAAI/bge-small-zh-v1.5") -> None:
-        from sentence_transformers import SentenceTransformer  # 延迟导入，避免无模型时崩
+        from sentence_transformers import SentenceTransformer  # lazy import
 
         self._model = SentenceTransformer(name)
         self.dim = int(self._model.get_embedding_dimension())
@@ -70,9 +70,9 @@ class SentenceTransformerEmbedder:
 
 
 def build_embedder(dim: int = 512) -> Embedder:
-    """优先用真嵌入模型；加载失败则退回哈希嵌入（会明显变弱，仅保链路可跑）。"""
+    """Prefer the real model; fall back to hashing if it cannot load."""
     try:
         return SentenceTransformerEmbedder("BAAI/bge-small-zh-v1.5")
     except Exception as exc:  # noqa: BLE001
-        print(f"[embed] 真嵌入模型不可用，退回哈希嵌入：{exc}")
+        print(f"[embed] real embedder unavailable, falling back to hashing: {exc}")
         return HashingEmbedder(dim)

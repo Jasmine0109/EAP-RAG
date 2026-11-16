@@ -4,7 +4,7 @@
 # severity: low / medium / high
 # smoke: true = runs in CI gate
 # sources: matched by case-insensitive substring against chunk heading
-# 旧版（中文语料）已归档：evals/cases/archive/core-zh-v0.2.yaml
+# Old Chinese-corpus baseline archived at evals/cases/archive/core-zh-v0.2.yaml
 
 version: "1.0"
 updated: "2026-11-15"

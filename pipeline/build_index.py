@@ -1,6 +1,7 @@
-"""把 corpus/processed/articles.jsonl 写成 markdown 并建索引（切块+真嵌入+SQLite）。
+"""Write corpus/processed/articles.jsonl as markdown and build the index (chunk + embed).
 
-用法：python pipeline/build_index.py
+Usage: python pipeline/build_index.py
+       RAG_DB_URL=postgresql:///eap python pipeline/build_index.py
 """
 from __future__ import annotations
 
@@ -40,7 +41,8 @@ def main() -> int:
         stats = rag.ingest([out_dir])
     finally:
         rag.close()
-    print(f"indexed: {stats.documents} docs, {stats.chunks} chunks, dim={rag.embedder.dim if hasattr(rag.embedder, 'dim') else '?'}")
+    dim = getattr(rag.embedder, "dim", "?")
+    print(f"indexed: {stats.documents} docs, {stats.chunks} chunks, dim={dim}")
     return 0
 
 

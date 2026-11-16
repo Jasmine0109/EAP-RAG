@@ -1,48 +1,29 @@
-# 文档索引
+# Docs Index
 
-这个目录有两类文档：**项目文档**（这个产品怎么建）和 **学习笔记**（RAG/Agent 概念）。
+This directory holds two kinds of documents: **project docs** (how this product is built) and **learning notes** (RAG/Agent concepts).
 
 ```
 docs/
-├── 项目文档.md                  ← 主文档：产品、架构、路线
-├── MVP-设计.md                  ← 交互：回答卡、线框、危机转介
-├── 数据pipeline.md              ← 数据：抓取 → 清洗 → 切块 → 入库
-├── 专业与安全设计.md            ← 边界：临床视角的自助干预与红线
-├── 问答与不懂清单.md            ← 记录：讨论过的问题与答案
+├── PROJECT.md          ← main: product, architecture, roadmap
+├── MVP-DESIGN.md       ← interaction: intake flow, answer card, crisis
+├── DATA-PIPELINE.md    ← data: crawl → clean → chunk → embed → store
+├── SAFETY-DESIGN.md    ← safety: self-help skills, hard boundaries
+├── QA-LOG.md           ← log: questions asked and answers given
 └── learning/
-    └── RAG与Agent学习笔记.md    ← 概念：RAG/Agent/金标/runner/自测
+    └── RAG-AND-AGENT.md   ← concepts (Chinese, kept as-is)
 ```
 
-## 按目的找
+## Find by purpose
 
-| 你想… | 看这个 |
+| I want to… | Read |
 | --- | --- |
-| 知道我们要做什么、为什么 | [项目文档](项目文档.md) |
-| 看界面/交互长什么样 | [MVP-设计](MVP-设计.md) |
-| 知道数据从哪来、怎么入库 | [数据pipeline](数据pipeline.md) |
-| 知道安全边界、哪些话不能说 | [专业与安全设计](专业与安全设计.md) |
-| 复习 RAG/Agent/金标的概念 | [RAG与Agent学习笔记](learning/RAG与Agent学习笔记.md) |
-| 看我们讨论过什么 | [问答与不懂清单](问答与不懂清单.md) |
+| understand what we are building | [PROJECT](PROJECT.md) |
+| see the conversation/UI design | [MVP-DESIGN](MVP-DESIGN.md) |
+| understand how data is collected | [DATA-PIPELINE](DATA-PIPELINE.md) |
+| know the safety boundaries | [SAFETY-DESIGN](SAFETY-DESIGN.md) |
+| review the discussion log | [QA-LOG](QA-LOG.md) |
+| revise RAG/Agent concepts | [Learning notes (Chinese)](learning/RAG-AND-AGENT.md) |
 
-## 每个文件是什么
+## Why these files are not merged
 
-| 文件 | 类型 | 一句话 |
-| --- | --- | --- |
-| `项目文档.md` | 项目 | 产品定义、架构、路线（唯一权威） |
-| `MVP-设计.md` | 项目 | 回答卡五段、线框、先问清楚、危机转介 |
-| `数据pipeline.md` | 项目 | 抓取→清洗→切块→入库；本地开发云端交付 |
-| `专业与安全设计.md` | 项目 | 临床视角：自助干预、不能输出的内容、转介话术 |
-| `问答与不懂清单.md` | 项目 | 逐条问题与答案，持续更新 |
-| `learning/RAG与Agent学习笔记.md` | 学习 | 知识地图、RAG 0→1、Agent 多轮、观测、金标、rubric、自测 |
-
-## 为什么没有合并
-
-这些文件内容**互补、不重复**，各自解决不同问题：
-
-- 项目文档讲"做什么、为什么"（产品决策）；
-- MVP 设计讲"交互怎么走"（要具体到线框）；
-- 数据 pipeline 讲"数据怎么来"（工程步骤）；
-- 安全设计讲"边界在哪"（专业判断）；
-- 学习笔记讲"概念是什么"（知识）。
-
-强行合并会让主文档臃肿、难维护。**学习笔记单独成目录，因为它是"知识"，不是"项目"。**
+They are complementary, not redundant: the project doc covers *what/why*, the MVP design covers *interaction*, the pipeline covers *data*, safety covers *boundaries*, and the learning notes cover *concepts*. Merging them would make the main doc bloated and hard to maintain.

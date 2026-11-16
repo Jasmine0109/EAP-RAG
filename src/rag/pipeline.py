@@ -1,4 +1,4 @@
-"""编排：把 ingest / embed / store / generate 串成两个动作 —— 建库、提问。"""
+"""Orchestration: wire ingest / embed / store / generate into two actions — build, ask."""
 
 from __future__ import annotations
 
@@ -34,7 +34,7 @@ class Rag:
             self.store = Store(self.config.index_path)
         self._llm = llm
 
-    # ---- 建库 ---------------------------------------------------------
+    # ---- build --------------------------------------------------------
 
     def ingest(self, paths: Sequence[str | Path], *, reset: bool = False) -> IngestStats:
         if reset:
@@ -43,7 +43,7 @@ class Rag:
         for raw in paths:
             root = Path(raw).expanduser()
             if not root.exists():
-                raise FileNotFoundError(f"路径不存在：{root}")
+                raise FileNotFoundError(f"path does not exist: {root}")
             base = root if root.is_dir() else root.parent
             for path in iter_files(root):
                 try:
@@ -68,11 +68,11 @@ class Rag:
                 stats.chunks += len(chunks)
         return stats
 
-    # ---- 检索与回答 ---------------------------------------------------
+    # ---- retrieve and answer ------------------------------------------
 
     def retrieve(self, question: str, k: int | None = None) -> list[Hit]:
         if self.store.count() == 0:
-            raise RuntimeError("索引是空的。先运行：rag ingest <路径>（或 make ingest）")
+            raise RuntimeError("index is empty. Run: rag ingest <path>")
         vector = self.embedder.embed([question])
         return self.store.search(vector[0], k=k or self.config.top_k)
 
@@ -92,7 +92,8 @@ class Rag:
             text = self._llm.chat(build_messages(question, hits))
         except LLMError as exc:
             return Answer(
-                text=f"（LLM 调用失败，已退回离线结果：{exc}）\n\n" + offline_answer(question, hits),
+                text=f"(LLM unavailable, showing retrieval-only results: {exc})\n\n"
+                + offline_answer(question, hits),
                 hits=hits,
                 mode="offline",
             )
