@@ -1,15 +1,29 @@
 [
   {"source": "nimh", "url": "https://www.nimh.nih.gov/health/publications/stress"},
+  {"source": "nimh", "url": "https://www.nimh.nih.gov/health/publications/so-stressed-out-fact-sheet"},
   {"source": "nimh", "url": "https://www.nimh.nih.gov/health/publications/depression"},
   {"source": "nimh", "url": "https://www.nimh.nih.gov/health/topics/anxiety-disorders"},
   {"source": "nimh", "url": "https://www.nimh.nih.gov/health/topics/depression"},
   {"source": "nimh", "url": "https://www.nimh.nih.gov/health/topics/coping-with-traumatic-events"},
 
+  {"source": "medlineplus", "url": "https://medlineplus.gov/depression.html"},
+  {"source": "medlineplus", "url": "https://medlineplus.gov/anxiety.html"},
+  {"source": "medlineplus", "url": "https://medlineplus.gov/stress.html"},
+  {"source": "medlineplus", "url": "https://medlineplus.gov/mentalhealth.html"},
+  {"source": "medlineplus", "url": "https://medlineplus.gov/occupationalhealth.html"},
+
   {"source": "samhsa", "url": "https://www.samhsa.gov/mental-health"},
   {"source": "samhsa", "url": "https://www.samhsa.gov/find-help/national-helpline"},
+  {"source": "samhsa", "url": "https://www.samhsa.gov/find-help/988"},
   {"source": "samhsa", "url": "https://www.samhsa.gov/workplace"},
 
   {"source": "osha", "url": "https://www.osha.gov/workplace-stress"},
 
-  {"source": "who", "url": "https://www.who.int/news-room/fact-sheets/detail/mental-health-at-work"}
+  {"source": "who", "url": "https://www.who.int/news-room/fact-sheets/detail/mental-health-at-work"},
+  {"source": "who", "url": "https://www.who.int/news-room/fact-sheets/detail/depression"},
+  {"source": "who", "url": "https://www.who.int/news-room/fact-sheets/detail/anxiety-disorders"},
+
+  {"source": "apa", "url": "https://www.apa.org/topics/stress"},
+  {"source": "apa", "url": "https://www.apa.org/topics/relationships"},
+  {"source": "apa", "url": "https://www.apa.org/topics/workplace"}
 ]
