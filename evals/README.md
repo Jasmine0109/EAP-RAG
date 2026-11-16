@@ -78,9 +78,22 @@ make eval-check      # 或 python evals/validate.py
 evals/
 ├── README.md          # 本文件
 ├── cases/
-│   └── core.yaml      # 金标用例（含 smoke 标记）
+│   ├── core-en.yaml   # 当前基线 v1.0（英文语料）
+│   └── archive/
+│       └── core-zh-v0.2.yaml  # 旧基线（中文语料，仅历史）
 └── reports/           # 评测产物（gitignore，可重建）
 ```
+
+## 版本与归档
+
+| 版本 | 文件 | 语料 | 状态 |
+| --- | --- | --- | --- |
+| v0.2 | `cases/archive/core-zh-v0.2.yaml` | 中文（中科院心理所） | 已归档，不参与 CI |
+| v1.0 | `cases/core-en.yaml` | 英文（NIMH / MedlinePlus / SAMHSA / OSHA / WHO） | **当前基线** |
+
+为什么归档而不是删：保留「当时怎么标的」可追溯。
+但它**不能继续做对比基线**——语料换了，题目和期望来源都变了。
+**铁律**：一次对比只能用同一版本的数据集。
 
 ## 怎么建（五步）
 
