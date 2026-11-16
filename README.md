@@ -23,6 +23,15 @@ PYTHONPATH=src python3 -m uvicorn app.main:app --port 8081
 # 浏览器打开 http://127.0.0.1:8081
 ```
 
+默认存 SQLite（`data/index/index.sqlite3`）。用 Postgres + pgvector：
+
+```bash
+createdb eap
+psql -d eap -c "create extension vector"
+RAG_DB_URL=postgresql:///eap python3 pipeline/build_index.py
+RAG_DB_URL=postgresql:///eap PYTHONPATH=src python3 -m uvicorn app.main:app --port 8081
+```
+
 ## 文档
 
 | 文档 | 内容 |

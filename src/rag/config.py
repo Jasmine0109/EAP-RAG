@@ -48,6 +48,7 @@ class Config:
     llm_api_key: str = "sk-local"
     llm_timeout: int = 120
     offline: bool = False
+    db_url: str = ""
 
     def __post_init__(self) -> None:
         if self.chunk_size <= 0:
@@ -75,4 +76,5 @@ def load() -> Config:
         llm_api_key=_str("RAG_LLM_API_KEY", "sk-local"),
         llm_timeout=_int("RAG_LLM_TIMEOUT", 120),
         offline=_bool("RAG_OFFLINE", False),
+        db_url=_str("RAG_DB_URL", ""),
     )

@@ -24,7 +24,14 @@ class Rag:
     ) -> None:
         self.config = config or load()
         self.embedder = embedder or build_embedder(self.config.embed_dim)
-        self.store = store or Store(self.config.index_path)
+        if store is not None:
+            self.store = store
+        elif self.config.db_url:
+            from .pg_store import PostgresStore
+
+            self.store = PostgresStore(self.config.db_url)
+        else:
+            self.store = Store(self.config.index_path)
         self._llm = llm
 
     # ---- 建库 ---------------------------------------------------------
